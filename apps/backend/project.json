@@ -1,0 +1,188 @@
+{
+  "name": "@codeed/backend",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "metadata": {},
+  "targets": {
+    "build": {
+      "options": {
+        "cwd": "apps/backend",
+        "args": [
+          "--node-env=production"
+        ],
+        "command": "webpack-cli build",
+        "styles": [
+          "node_modules/@taiga-ui/core/styles/taiga-ui-theme.less",
+          "node_modules/@taiga-ui/core/styles/taiga-ui-fonts.less"
+        ]
+      },
+      "cache": true,
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production",
+        {
+          "externalDependencies": [
+            "webpack-cli"
+          ]
+        }
+      ],
+      "outputs": [
+        "{workspaceRoot}/dist/apps/backend"
+      ],
+      "metadata": {
+        "technologies": [
+          "webpack"
+        ],
+        "description": "Runs Webpack build",
+        "help": {
+          "command": "npx webpack-cli build --help",
+          "example": {
+            "options": {
+              "json": "stats.json"
+            },
+            "args": [
+              "--profile"
+            ]
+          }
+        }
+      },
+      "executor": "nx:run-commands",
+      "configurations": {},
+      "parallelism": true
+    },
+    "serve": {
+      "options": {
+        "cwd": "apps/backend",
+        "args": [
+          "--node-env=development"
+        ],
+        "command": "webpack-cli serve"
+      },
+      "metadata": {
+        "technologies": [
+          "webpack"
+        ],
+        "description": "Starts Webpack dev server",
+        "help": {
+          "command": "npx webpack-cli serve --help",
+          "example": {
+            "options": {
+              "args": [
+                "--client-progress",
+                "--history-api-fallback "
+              ]
+            }
+          }
+        }
+      },
+      "executor": "nx:run-commands",
+      "configurations": {},
+      "parallelism": true
+    },
+    "preview": {
+      "options": {
+        "cwd": "apps/backend",
+        "args": [
+          "--node-env=production"
+        ],
+        "command": "webpack-cli serve"
+      },
+      "metadata": {
+        "technologies": [
+          "webpack"
+        ],
+        "description": "Starts Webpack dev server in production mode",
+        "help": {
+          "command": "npx webpack-cli serve --help",
+          "example": {
+            "options": {
+              "args": [
+                "--client-progress",
+                "--history-api-fallback "
+              ]
+            }
+          }
+        }
+      },
+      "executor": "nx:run-commands",
+      "configurations": {},
+      "parallelism": true
+    },
+    "serve-static": {
+      "dependsOn": [
+        "build"
+      ],
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "build",
+        "spa": true
+      },
+      "configurations": {},
+      "parallelism": true
+    },
+    "build-deps": {
+      "dependsOn": [
+        "^build"
+      ],
+      "configurations": {},
+      "options": {},
+      "parallelism": true,
+      "executor": "nx:noop"
+    },
+    "watch-deps": {
+      "dependsOn": [
+        "build-deps"
+      ],
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx nx watch --projects backend --includeDependentProjects -- npx nx build-deps backend"
+      },
+      "configurations": {},
+      "parallelism": true
+    },
+    "lint": {
+      "cache": true,
+      "options": {
+        "cwd": "apps/backend",
+        "command": "eslint ."
+      },
+      "inputs": [
+        "default",
+        "^default",
+        "{workspaceRoot}/eslint.config.mjs",
+        "{projectRoot}/eslint.config.mjs",
+        "{workspaceRoot}/tools/eslint-rules/**/*",
+        {
+          "externalDependencies": [
+            "eslint"
+          ]
+        }
+      ],
+      "outputs": [
+        "{options.outputFile}"
+      ],
+      "metadata": {
+        "technologies": [
+          "eslint"
+        ],
+        "description": "Runs ESLint on project",
+        "help": {
+          "command": "npx eslint --help",
+          "example": {
+            "options": {
+              "max-warnings": 0
+            }
+          }
+        }
+      },
+      "executor": "nx:run-commands",
+      "configurations": {},
+      "parallelism": true
+    }
+  },
+  "implicitDependencies": [],
+  "tags": []
+}

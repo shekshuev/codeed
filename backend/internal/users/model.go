@@ -16,6 +16,8 @@ type User struct {
 	LastName   string             `bson:"last_name"`     // User's last name
 	Role       string             `bson:"role"`          // "admin" or "student"
 	CreatedAt  time.Time          `bson:"created_at"`    // Timestamp when user was created
+	UpdatedAt  time.Time          `bson:"updated_at"`    // Timestamp when user was last updated
+	DeletedAt  *time.Time         `bson:"deleted_at"`    // Optional timestamp when user was deleted (soft delete)
 }
 
 // CreateUserDTO is used when creating a new user from client data (e.g. after Telegram login).
@@ -44,6 +46,7 @@ type ReadUserDTO struct {
 	LastName   string `json:"last_name"`   // Last name
 	Role       string `json:"role"`        // "admin" or "student"
 	CreatedAt  string `json:"created_at"`  // ISO 8601 timestamp (RFC3339)
+	UpdatedAt  string `json:"updated_at"`  // ISO 8601 timestamp (RFC3339)
 }
 
 // ToReadUserDTO converts the User entity into a ReadUserDTO suitable for JSON output.
@@ -56,6 +59,7 @@ func (u User) ToReadUserDTO() *ReadUserDTO {
 		LastName:   u.LastName,
 		Role:       u.Role,
 		CreatedAt:  u.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:  u.UpdatedAt.Format(time.RFC3339),
 	}
 }
 
@@ -70,6 +74,7 @@ func (dto CreateUserDTO) ToUserFromCreateDTO() User {
 		LastName:   dto.LastName,
 		Role:       dto.Role,
 		CreatedAt:  time.Now().UTC(),
+		UpdatedAt:  time.Now().UTC(),
 	}
 }
 
@@ -89,5 +94,6 @@ func (dto UpdateUserDTO) ToBsonUpdateFromUpdateDTO() bson.M {
 	if len(update) == 0 {
 		return bson.M{}
 	}
+	update["updated_at"] = time.Now().UTC()
 	return bson.M{"$set": update}
 }

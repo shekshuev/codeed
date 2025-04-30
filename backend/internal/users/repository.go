@@ -11,6 +11,9 @@ var (
 
 	// ErrUserExists is returned when attempting to create a user that already exists (based on Telegram ID).
 	ErrUserExists = errors.New("user already exists")
+
+	// ErrInvalidIDFormat is returned when the provided user ID string cannot be parsed as a MongoDB ObjectID.
+	ErrInvalidIDFormat = errors.New("invalid user id format")
 )
 
 // Repository defines a persistence interface for working with users.
@@ -32,4 +35,8 @@ type Repository interface {
 	// Only non-nil fields in DTO are updated.
 	// Returns ErrUserNotFound if no user with that ID exists.
 	UpdateByID(ctx context.Context, id string, dto UpdateUserDTO) error
+
+	// DeleteByID marks as delete user in the storage by their MongoDB ObjectID string.
+	// Returns ErrUserNotFound if no user with that ID exists.
+	DeleteByID(ctx context.Context, id string) error
 }

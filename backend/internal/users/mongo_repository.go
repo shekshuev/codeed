@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -48,7 +49,7 @@ func (r *MongoRepository) Create(ctx context.Context, dto CreateUserDTO) (*ReadU
 func (r *MongoRepository) GetByID(ctx context.Context, id string) (*ReadUserDTO, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, errors.New("invalid user id format")
+		return nil, ErrInvalidIDFormat
 	}
 	var u User
 	err = r.collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&u)
@@ -80,7 +81,7 @@ func (r *MongoRepository) GetByTelegramID(ctx context.Context, telegramID int64)
 func (r *MongoRepository) UpdateByID(ctx context.Context, id string, dto UpdateUserDTO) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return errors.New("invalid user id format")
+		return ErrInvalidIDFormat
 	}
 	update := dto.ToBsonUpdateFromUpdateDTO()
 	if len(update) == 0 {
@@ -91,6 +92,25 @@ func (r *MongoRepository) UpdateByID(ctx context.Context, id string, dto UpdateU
 		return err
 	}
 	if res.MatchedCount == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}
+
+// DeleteByID marks a user as deleted by their MongoDB ObjectID string.
+// Returns ErrUserNotFound if no user exists with the given ID.
+func (r *MongoRepository) DeleteByID(ctx context.Context, id string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return ErrInvalidIDFormat
+	}
+	res, err := r.collection.UpdateByID(ctx, objectID, bson.M{
+		"$set": bson.M{"deleted_at": time.Now().UTC()},
+	})
+	if err != nil {
+		return err
+	}
+	if res.ModifiedCount == 0 {
 		return ErrUserNotFound
 	}
 	return nil

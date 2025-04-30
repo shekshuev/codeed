@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,9 +16,7 @@ import (
 func setupMongo(t *testing.T) (*MongoRepository, func()) {
 	ctx := context.Background()
 
-	container, err := mongodb.RunContainer(ctx,
-		testcontainers.WithImage("mongo:6"),
-	)
+	container, err := mongodb.Run(ctx, "mongo:6")
 	assert.NoError(t, err)
 
 	t.Cleanup(func() {

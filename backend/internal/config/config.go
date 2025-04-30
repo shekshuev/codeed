@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/caarlos0/env"
-	_ "github.com/joho/godotenv/autoload"
 	"github.com/shekshuev/codeed/backend/internal/logger"
 	"go.uber.org/zap"
 )

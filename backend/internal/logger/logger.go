@@ -10,7 +10,8 @@ import (
 // Logger wraps a zap.Logger instance with a singleton pattern.
 // It ensures that only one logger is created and reused across the application.
 type Logger struct {
-	Log *zap.Logger
+	Log   *zap.Logger
+	Sugar *zap.SugaredLogger // Sugared logger (for convenience)
 }
 
 var (
@@ -43,5 +44,6 @@ func (l *Logger) initialize(level string) error {
 		return err
 	}
 	l.Log = zl
+	l.Sugar = zl.Sugar()
 	return nil
 }

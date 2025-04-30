@@ -2,6 +2,8 @@ package users
 
 import (
 	"context"
+
+	"github.com/shekshuev/codeed/backend/internal/logger"
 )
 
 // Service defines user-related business logic.
@@ -33,29 +35,63 @@ type Service interface {
 // service is the default implementation of the Service interface.
 type service struct {
 	repo Repository
+	log  *logger.Logger
 }
 
 // NewService creates a new user service using the provided Repository.
 func NewService(repo Repository) Service {
-	return &service{repo: repo}
+	return &service{repo: repo, log: logger.NewLogger()}
 }
 
 func (s *service) CreateUser(ctx context.Context, dto CreateUserDTO) (*ReadUserDTO, error) {
-	return s.repo.Create(ctx, dto)
+	s.log.Sugar.Infof("Creating user: telegram_id=%d username=%s", dto.TelegramID, dto.Username)
+	user, err := s.repo.Create(ctx, dto)
+	if err != nil {
+		s.log.Sugar.Warnw("Failed to create user", "telegram_id", dto.TelegramID, "error", err)
+		return nil, err
+	}
+	s.log.Sugar.Infof("User created: id=%s", user.ID)
+	return user, nil
 }
 
 func (s *service) GetUserByID(ctx context.Context, id string) (*ReadUserDTO, error) {
-	return s.repo.GetByID(ctx, id)
+	s.log.Sugar.Infof("Fetching user by ID: %s", id)
+	user, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		s.log.Sugar.Warnw("Failed to fetch user by ID", "id", id, "error", err)
+		return nil, err
+	}
+	return user, nil
 }
 
 func (s *service) GetUserByTelegramID(ctx context.Context, telegramID int64) (*ReadUserDTO, error) {
-	return s.repo.GetByTelegramID(ctx, telegramID)
+	s.log.Sugar.Infof("Fetching user by Telegram ID: %d", telegramID)
+	user, err := s.repo.GetByTelegramID(ctx, telegramID)
+	if err != nil {
+		s.log.Sugar.Warnw("Failed to fetch user by Telegram ID", "telegram_id", telegramID, "error", err)
+		return nil, err
+	}
+	return user, nil
 }
 
 func (s *service) UpdateUser(ctx context.Context, id string, dto UpdateUserDTO) error {
-	return s.repo.UpdateByID(ctx, id, dto)
+	s.log.Sugar.Infof("Updating user: id=%s", id)
+	err := s.repo.UpdateByID(ctx, id, dto)
+	if err != nil {
+		s.log.Sugar.Warnw("Failed to update user", "id", id, "error", err)
+		return err
+	}
+	s.log.Sugar.Infof("User updated: id=%s", id)
+	return nil
 }
 
 func (s *service) DeleteUser(ctx context.Context, id string) error {
-	return s.repo.DeleteByID(ctx, id)
+	s.log.Sugar.Infof("Deleting user: id=%s", id)
+	err := s.repo.DeleteByID(ctx, id)
+	if err != nil {
+		s.log.Sugar.Warnw("Failed to delete user", "id", id, "error", err)
+		return err
+	}
+	s.log.Sugar.Infof("User deleted: id=%s", id)
+	return nil
 }

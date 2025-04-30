@@ -8,7 +8,6 @@ import (
 
 	"github.com/caarlos0/env"
 	"github.com/shekshuev/codeed/backend/internal/logger"
-	"go.uber.org/zap"
 )
 
 // Config stores all runtime configuration values loaded from flags, env or JSON.
@@ -106,7 +105,7 @@ func parsEnv(cfg *Config) {
 	var envCfg envConfig
 	err := env.Parse(&envCfg)
 	if err != nil {
-		l.Log.Error("Error starting server", zap.Error(err))
+		l.Sugar.Errorf("Error starting server", err)
 	}
 	if len(envCfg.ServerAddress) > 0 {
 		cfg.ServerAddress = envCfg.ServerAddress
@@ -138,14 +137,14 @@ func parseJSON(path string, cfg *Config) {
 
 	file, err := os.Open(path)
 	if err != nil {
-		logger.NewLogger().Log.Warn("Could not open config file", zap.Error(err))
+		logger.NewLogger().Sugar.Warnf("Could not open config file", err)
 		return
 	}
 	defer file.Close()
 
 	var jCfg jsonConfig
 	if err := json.NewDecoder(file).Decode(&jCfg); err != nil {
-		logger.NewLogger().Log.Warn("Could not decode config JSON", zap.Error(err))
+		logger.NewLogger().Sugar.Warnf("Could not decode config JSON", err)
 		return
 	}
 

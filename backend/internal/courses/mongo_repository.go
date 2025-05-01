@@ -12,14 +12,14 @@ import (
 )
 
 // MongoRepository is a MongoDB-backed implementation of the Repository interface for managing courses.
-type MongoRepository struct {
+type CourseRepositoryImpl struct {
 	collection *mongo.Collection
 	log        *logger.Logger
 }
 
 // NewMongoRepository creates a new instance of MongoRepository that operates on the "courses" collection.
-func NewMongoRepository(db *mongo.Database) *MongoRepository {
-	return &MongoRepository{
+func NewMongoRepository(db *mongo.Database) *CourseRepositoryImpl {
+	return &CourseRepositoryImpl{
 		collection: db.Collection("courses"),
 		log:        logger.NewLogger(),
 	}
@@ -29,7 +29,7 @@ func NewMongoRepository(db *mongo.Database) *MongoRepository {
 // It converts the DTO to a full course entity with generated ID and timestamps.
 //
 // Returns the created course as a ReadCourseDTO, or an error if insertion fails.
-func (r *MongoRepository) Create(ctx context.Context, dto CreateCourseDTO) (*ReadCourseDTO, error) {
+func (r *CourseRepositoryImpl) Create(ctx context.Context, dto CreateCourseDTO) (*ReadCourseDTO, error) {
 	course, err := dto.ToCourseFromCreateDTO()
 	if err != nil {
 		r.log.Sugar.Warnf("failed to parse author ID: %v", err)
@@ -50,7 +50,7 @@ func (r *MongoRepository) Create(ctx context.Context, dto CreateCourseDTO) (*Rea
 // The course must not be soft-deleted (i.e., deleted_at must not exist).
 //
 // Returns ErrCourseNotFound if no course is found or the ID is invalid.
-func (r *MongoRepository) GetByID(ctx context.Context, id string) (*ReadCourseDTO, error) {
+func (r *CourseRepositoryImpl) GetByID(ctx context.Context, id string) (*ReadCourseDTO, error) {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		r.log.Sugar.Warnf("invalid course ID format: %s", id)
@@ -76,7 +76,7 @@ func (r *MongoRepository) GetByID(ctx context.Context, id string) (*ReadCourseDT
 // Only non-nil fields are updated. Automatically updates the `updated_at` timestamp.
 //
 // Returns ErrCourseNotFound if the course does not exist or is soft-deleted.
-func (r *MongoRepository) UpdateByID(ctx context.Context, id string, dto UpdateCourseDTO) error {
+func (r *CourseRepositoryImpl) UpdateByID(ctx context.Context, id string, dto UpdateCourseDTO) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		r.log.Sugar.Warnf("invalid course ID format: %s", id)
@@ -107,7 +107,7 @@ func (r *MongoRepository) UpdateByID(ctx context.Context, id string, dto UpdateC
 // by setting the `deleted_at` field to the current UTC time.
 //
 // Returns ErrCourseNotFound if the course does not exist.
-func (r *MongoRepository) DeleteByID(ctx context.Context, id string) error {
+func (r *CourseRepositoryImpl) DeleteByID(ctx context.Context, id string) error {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		r.log.Sugar.Warnf("invalid course ID format: %s", id)
@@ -137,7 +137,7 @@ func (r *MongoRepository) DeleteByID(ctx context.Context, id string) error {
 //   - publication status.
 //
 // Returns an error if the filter is invalid or a database issue occurs.
-func (r *MongoRepository) Find(ctx context.Context, filterDTO FilterCoursesDTO) ([]*ReadCourseDTO, error) {
+func (r *CourseRepositoryImpl) Find(ctx context.Context, filterDTO FilterCoursesDTO) ([]*ReadCourseDTO, error) {
 	filter := bson.M{"deleted_at": bson.M{"$exists": false}}
 
 	if filterDTO.Title != nil && *filterDTO.Title != "" {

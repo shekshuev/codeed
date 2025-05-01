@@ -33,12 +33,12 @@ type CourseService interface {
 }
 
 type CourseServiceImpl struct {
-	repo Repository
+	repo CourseRepository
 	log  *logger.Logger
 }
 
 // NewService creates a new course service backed by a Repository and logger.
-func NewService(repo Repository) CourseService {
+func NewService(repo CourseRepository) CourseService {
 	return &CourseServiceImpl{
 		repo: repo,
 		log:  logger.NewLogger(),

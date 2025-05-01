@@ -11,7 +11,7 @@ var ErrCourseNotFound = errors.New("course not found")
 // Repository defines the behavior of a course repository.
 //
 // This interface abstracts storage operations related to course entities.
-type Repository interface {
+type CourseRepository interface {
 	// Create inserts a new course using data from the CreateCourseDTO.
 	Create(ctx context.Context, dto CreateCourseDTO) (*ReadCourseDTO, error)
 

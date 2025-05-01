@@ -10,7 +10,7 @@ import (
 //
 // It provides a layer over the Repository abstraction, allowing validation,
 // additional business rules, and future extensions (e.g., notifications, acls, airdrops).
-type Service interface {
+type UserService interface {
 	// CreateUser adds a new user to the system.
 	// Returns ErrUserExists if a user with the same Telegram ID already exists.
 	CreateUser(ctx context.Context, dto CreateUserDTO) (*ReadUserDTO, error)
@@ -33,17 +33,17 @@ type Service interface {
 }
 
 // service is the default implementation of the Service interface.
-type service struct {
-	repo Repository
+type UserServiceImpl struct {
+	repo UserRepository
 	log  *logger.Logger
 }
 
 // NewService creates a new user service using the provided Repository.
-func NewService(repo Repository) Service {
-	return &service{repo: repo, log: logger.NewLogger()}
+func NewService(repo UserRepository) UserService {
+	return &UserServiceImpl{repo: repo, log: logger.NewLogger()}
 }
 
-func (s *service) CreateUser(ctx context.Context, dto CreateUserDTO) (*ReadUserDTO, error) {
+func (s *UserServiceImpl) CreateUser(ctx context.Context, dto CreateUserDTO) (*ReadUserDTO, error) {
 	s.log.Sugar.Infof("Creating user: telegram_id=%d username=%s", dto.TelegramID, dto.Username)
 	user, err := s.repo.Create(ctx, dto)
 	if err != nil {
@@ -54,7 +54,7 @@ func (s *service) CreateUser(ctx context.Context, dto CreateUserDTO) (*ReadUserD
 	return user, nil
 }
 
-func (s *service) GetUserByID(ctx context.Context, id string) (*ReadUserDTO, error) {
+func (s *UserServiceImpl) GetUserByID(ctx context.Context, id string) (*ReadUserDTO, error) {
 	s.log.Sugar.Infof("Fetching user by ID: %s", id)
 	user, err := s.repo.GetByID(ctx, id)
 	if err != nil {
@@ -64,7 +64,7 @@ func (s *service) GetUserByID(ctx context.Context, id string) (*ReadUserDTO, err
 	return user, nil
 }
 
-func (s *service) GetUserByTelegramID(ctx context.Context, telegramID int64) (*ReadUserDTO, error) {
+func (s *UserServiceImpl) GetUserByTelegramID(ctx context.Context, telegramID int64) (*ReadUserDTO, error) {
 	s.log.Sugar.Infof("Fetching user by Telegram ID: %d", telegramID)
 	user, err := s.repo.GetByTelegramID(ctx, telegramID)
 	if err != nil {
@@ -74,7 +74,7 @@ func (s *service) GetUserByTelegramID(ctx context.Context, telegramID int64) (*R
 	return user, nil
 }
 
-func (s *service) UpdateUser(ctx context.Context, id string, dto UpdateUserDTO) error {
+func (s *UserServiceImpl) UpdateUser(ctx context.Context, id string, dto UpdateUserDTO) error {
 	s.log.Sugar.Infof("Updating user: id=%s", id)
 	err := s.repo.UpdateByID(ctx, id, dto)
 	if err != nil {
@@ -85,7 +85,7 @@ func (s *service) UpdateUser(ctx context.Context, id string, dto UpdateUserDTO) 
 	return nil
 }
 
-func (s *service) DeleteUser(ctx context.Context, id string) error {
+func (s *UserServiceImpl) DeleteUser(ctx context.Context, id string) error {
 	s.log.Sugar.Infof("Deleting user: id=%s", id)
 	err := s.repo.DeleteByID(ctx, id)
 	if err != nil {

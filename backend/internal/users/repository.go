@@ -18,7 +18,7 @@ var (
 
 // Repository defines a persistence interface for working with users.
 // It abstracts away the storage layer (e.g., MongoDB).
-type Repository interface {
+type UserRepository interface {
 	// Create adds a new user to the storage based on the provided CreateUserDTO.
 	// Returns ErrUserExists if a user with the same Telegram ID already exists.
 	Create(ctx context.Context, dto CreateUserDTO) (*ReadUserDTO, error)

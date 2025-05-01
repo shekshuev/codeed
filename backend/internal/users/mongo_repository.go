@@ -12,14 +12,14 @@ import (
 )
 
 // MongoRepository provides MongoDB-based implementation of the user Repository interface.
-type MongoRepository struct {
+type UserRepositoryImpl struct {
 	collection *mongo.Collection
 	log        *logger.Logger
 }
 
 // NewMongoRepository creates a new MongoRepository bound to the "users" collection.
-func NewMongoRepository(db *mongo.Database) *MongoRepository {
-	return &MongoRepository{
+func NewMongoRepository(db *mongo.Database) *UserRepositoryImpl {
+	return &UserRepositoryImpl{
 		collection: db.Collection("users"),
 		log:        logger.NewLogger(),
 	}
@@ -28,7 +28,7 @@ func NewMongoRepository(db *mongo.Database) *MongoRepository {
 // Create inserts a new user document based on the provided CreateUserDTO.
 // It first checks if a user with the same Telegram ID already exists.
 // Returns ErrUserExists if duplicate, or the created user as ReadUserDTO.
-func (r *MongoRepository) Create(ctx context.Context, dto CreateUserDTO) (*ReadUserDTO, error) {
+func (r *UserRepositoryImpl) Create(ctx context.Context, dto CreateUserDTO) (*ReadUserDTO, error) {
 	r.log.Sugar.Infof("Attempting to create user: telegram_id=%d", dto.TelegramID)
 	count, err := r.collection.CountDocuments(ctx, bson.M{"telegram_id": dto.TelegramID})
 	if err != nil {
@@ -54,7 +54,7 @@ func (r *MongoRepository) Create(ctx context.Context, dto CreateUserDTO) (*ReadU
 // GetByID fetches a user by their string MongoDB ObjectID.
 // Returns ErrUserNotFound if no user exists with the given ID,
 // or an error if the ID format is invalid or DB error occurs.
-func (r *MongoRepository) GetByID(ctx context.Context, id string) (*ReadUserDTO, error) {
+func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*ReadUserDTO, error) {
 	r.log.Sugar.Infof("Fetching user by ID: %s", id)
 
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -78,7 +78,7 @@ func (r *MongoRepository) GetByID(ctx context.Context, id string) (*ReadUserDTO,
 
 // GetByTelegramID finds a user by their Telegram ID (unique external identity).
 // Returns ErrUserNotFound if no user exists with the given Telegram ID.
-func (r *MongoRepository) GetByTelegramID(ctx context.Context, telegramID int64) (*ReadUserDTO, error) {
+func (r *UserRepositoryImpl) GetByTelegramID(ctx context.Context, telegramID int64) (*ReadUserDTO, error) {
 	r.log.Sugar.Infof("Fetching user by telegram_id: %d", telegramID)
 
 	var u User
@@ -96,7 +96,7 @@ func (r *MongoRepository) GetByTelegramID(ctx context.Context, telegramID int64)
 
 // UpdateByID updates a user by Mongo ObjectID string using non-nil fields from UpdateUserDTO.
 // Returns ErrUserNotFound if no such user exists. Does nothing if DTO is empty.
-func (r *MongoRepository) UpdateByID(ctx context.Context, id string, dto UpdateUserDTO) error {
+func (r *UserRepositoryImpl) UpdateByID(ctx context.Context, id string, dto UpdateUserDTO) error {
 	r.log.Sugar.Infof("Updating user: id=%s", id)
 
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -127,7 +127,7 @@ func (r *MongoRepository) UpdateByID(ctx context.Context, id string, dto UpdateU
 
 // DeleteByID marks a user as deleted by their MongoDB ObjectID string.
 // Returns ErrUserNotFound if no user exists with the given ID.
-func (r *MongoRepository) DeleteByID(ctx context.Context, id string) error {
+func (r *UserRepositoryImpl) DeleteByID(ctx context.Context, id string) error {
 	r.log.Sugar.Infof("Soft deleting user: id=%s", id)
 
 	objectID, err := primitive.ObjectIDFromHex(id)

@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func setupMongo(t *testing.T) (*MongoRepository, func()) {
+func setupMongo(t *testing.T) (*CourseRepositoryImpl, func()) {
 	ctx := context.Background()
 
 	container, err := mongodb.Run(ctx, "mongo:6")

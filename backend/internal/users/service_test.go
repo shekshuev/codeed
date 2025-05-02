@@ -13,24 +13,24 @@ func TestService_CreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := NewMockRepository(ctrl)
+	mockRepo := NewMockUserRepository(ctrl)
 	service := NewService(mockRepo)
 
 	createDTO := CreateUserDTO{
-		TelegramID: 123,
-		Username:   "john",
-		FirstName:  "John",
-		LastName:   "Doe",
-		Role:       "student",
+		TelegramUsername: "telegram_user",
+		Username:         "john",
+		FirstName:        "John",
+		LastName:         "Doe",
+		Role:             "student",
 	}
 	readDTO := &ReadUserDTO{
-		ID:         "abc123",
-		TelegramID: 123,
-		Username:   "john",
-		FirstName:  "John",
-		LastName:   "Doe",
-		Role:       "student",
-		CreatedAt:  "2024-01-01T00:00:00Z",
+		ID:               "abc123",
+		TelegramUsername: "telegram_user",
+		Username:         "john",
+		FirstName:        "John",
+		LastName:         "Doe",
+		Role:             "student",
+		CreatedAt:        "2024-01-01T00:00:00Z",
 	}
 
 	t.Run("successful creation", func(t *testing.T) {
@@ -63,18 +63,18 @@ func TestService_GetUserByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := NewMockRepository(ctrl)
+	mockRepo := NewMockUserRepository(ctrl)
 	service := NewService(mockRepo)
 
 	userID := "abc123"
 	readDTO := &ReadUserDTO{
-		ID:         userID,
-		TelegramID: 123,
-		Username:   "john",
-		FirstName:  "John",
-		LastName:   "Doe",
-		Role:       "student",
-		CreatedAt:  "2024-01-01T00:00:00Z",
+		ID:               userID,
+		TelegramUsername: "telegram_user",
+		Username:         "john",
+		FirstName:        "John",
+		LastName:         "Doe",
+		Role:             "student",
+		CreatedAt:        "2024-01-01T00:00:00Z",
 	}
 
 	t.Run("returns user successfully", func(t *testing.T) {
@@ -102,33 +102,33 @@ func TestService_GetUserByID(t *testing.T) {
 	})
 }
 
-func TestService_GetUserByTelegramID(t *testing.T) {
+func TestService_GetUserByTelegramUsername(t *testing.T) {
 	ctx := context.Background()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := NewMockRepository(ctrl)
+	mockRepo := NewMockUserRepository(ctrl)
 	service := NewService(mockRepo)
 
-	telegramID := int64(987654321)
+	telegramUsername := "telegram_user"
 	readDTO := &ReadUserDTO{
-		ID:         "def456",
-		TelegramID: telegramID,
-		Username:   "telegram_user",
-		FirstName:  "Tele",
-		LastName:   "User",
-		Role:       "student",
-		CreatedAt:  "2024-01-02T00:00:00Z",
+		ID:               "def456",
+		TelegramUsername: telegramUsername,
+		Username:         "telegram_user",
+		FirstName:        "Tele",
+		LastName:         "User",
+		Role:             "student",
+		CreatedAt:        "2024-01-02T00:00:00Z",
 	}
 
 	t.Run("returns user by Telegram ID", func(t *testing.T) {
 		mockRepo.
 			EXPECT().
-			GetByTelegramID(ctx, telegramID).
+			GetByTelegramUsername(ctx, telegramUsername).
 			Return(readDTO, nil).
 			Times(1)
 
-		result, err := service.GetUserByTelegramID(ctx, telegramID)
+		result, err := service.GetUserByTelegramUsername(ctx, telegramUsername)
 		assert.NoError(t, err)
 		assert.Equal(t, readDTO, result)
 	})
@@ -136,11 +136,11 @@ func TestService_GetUserByTelegramID(t *testing.T) {
 	t.Run("returns error if Telegram user not found", func(t *testing.T) {
 		mockRepo.
 			EXPECT().
-			GetByTelegramID(ctx, telegramID).
+			GetByTelegramUsername(ctx, telegramUsername).
 			Return(nil, ErrUserNotFound).
 			Times(1)
 
-		result, err := service.GetUserByTelegramID(ctx, telegramID)
+		result, err := service.GetUserByTelegramUsername(ctx, telegramUsername)
 		assert.Nil(t, result)
 		assert.ErrorIs(t, err, ErrUserNotFound)
 	})
@@ -151,7 +151,7 @@ func TestService_UpdateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := NewMockRepository(ctrl)
+	mockRepo := NewMockUserRepository(ctrl)
 	service := NewService(mockRepo)
 
 	userID := "abc123"
@@ -188,7 +188,7 @@ func TestService_DeleteUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRepo := NewMockRepository(ctrl)
+	mockRepo := NewMockUserRepository(ctrl)
 	service := NewService(mockRepo)
 
 	userID := "abc123"

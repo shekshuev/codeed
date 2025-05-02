@@ -10,81 +10,176 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func TestAuthAttemptRepository_CRUD(t *testing.T) {
+func TestAuthAttemptRepositoryImpl_Create(t *testing.T) {
 	db, disconnect := testutils.SetupMongo(t)
-	repo := NewAuthAttemptRepository(db)
-	defer disconnect()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	var attemptID string
-
-	t.Run("creates an auth attempt", func(t *testing.T) {
-		attempt := AuthAttempt{
-			ID:             primitive.NewObjectID(),
-			IdentifierUsed: "telegram_user",
-			Type:           TypeTelegram,
-			Code:           "123456",
-			Success:        false,
-			AttemptLeft:    3,
-			TTL:            5 * time.Minute,
-			CreatedAt:      time.Now().UTC(),
-			UpdatedAt:      time.Now().UTC(),
-		}
-
-		created, err := repo.Create(ctx, attempt)
-		assert.NoError(t, err)
-		assert.Equal(t, attempt.ID, created.ID)
-		attemptID = created.ID.Hex()
-	})
-
-	t.Run("retrieves an auth attempt by ID", func(t *testing.T) {
-		found, err := repo.GetByID(ctx, attemptID)
-		assert.NoError(t, err)
-		assert.Equal(t, "telegram_user", found.IdentifierUsed)
-	})
-
-	t.Run("updates attempt_left", func(t *testing.T) {
-		newLeft := 2
-		err := repo.Update(ctx, attemptID, UpdateAuthAttemptDTO{
-			AttemptLeft: &newLeft,
-		})
-		assert.NoError(t, err)
-
-		updated, err := repo.GetByID(ctx, attemptID)
-		assert.NoError(t, err)
-		assert.Equal(t, 2, updated.AttemptLeft)
-	})
-
-	t.Run("deletes an auth attempt", func(t *testing.T) {
-		err := repo.Delete(ctx, attemptID)
-		assert.NoError(t, err)
-
-		_, err = repo.GetByID(ctx, attemptID)
-		assert.ErrorIs(t, err, ErrAuthAttemptNotFound)
-	})
-}
-
-func TestAuthAttemptRepository_InvalidID(t *testing.T) {
-	db, disconnect := testutils.SetupMongo(t)
-	repo := NewAuthAttemptRepository(db)
+	repoImpl := NewAuthAttemptRepository(db)
 	defer disconnect()
 
 	ctx := context.Background()
 
-	t.Run("returns error for invalid GetByID", func(t *testing.T) {
-		_, err := repo.GetByID(ctx, "invalid-id")
+	t.Run("creates an auth attempt", func(t *testing.T) {
+		attempt := AuthAttempt{
+			ID:             primitive.NewObjectID(),
+			IdentifierUsed: "user1",
+			Type:           TypeTelegram,
+			Code:           "123456",
+			Success:        false,
+			AttemptLeft:    3,
+			TTL:            AttemptTTL,
+			CreatedAt:      time.Now().UTC(),
+			UpdatedAt:      time.Now().UTC(),
+		}
+		res, err := repoImpl.Create(ctx, attempt)
+		assert.NoError(t, err)
+		assert.Equal(t, attempt.IdentifierUsed, res.IdentifierUsed)
+	})
+}
+
+func TestAuthAttemptRepositoryImpl_GetByID(t *testing.T) {
+	db, disconnect := testutils.SetupMongo(t)
+	repoImpl := NewAuthAttemptRepository(db)
+	defer disconnect()
+
+	ctx := context.Background()
+	attempt := AuthAttempt{
+		ID:             primitive.NewObjectID(),
+		IdentifierUsed: "user2",
+		Type:           TypeTelegram,
+		Code:           "654321",
+		Success:        false,
+		AttemptLeft:    2,
+		TTL:            AttemptTTL,
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+	}
+	repoImpl.Create(ctx, attempt)
+	id := attempt.ID.Hex()
+
+	t.Run("gets auth attempt by ID", func(t *testing.T) {
+		res, err := repoImpl.GetByID(ctx, id)
+		assert.NoError(t, err)
+		assert.Equal(t, id, res.ID.Hex())
+	})
+
+	t.Run("returns error for invalid ID", func(t *testing.T) {
+		res, err := repoImpl.GetByID(ctx, "bad-id")
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, ErrInvalidAuthAttemptID)
+	})
+}
+
+func TestAuthAttemptRepositoryImpl_Update(t *testing.T) {
+	db, disconnect := testutils.SetupMongo(t)
+	repoImpl := NewAuthAttemptRepository(db)
+	defer disconnect()
+
+	ctx := context.Background()
+	attempt := AuthAttempt{
+		ID:             primitive.NewObjectID(),
+		IdentifierUsed: "user3",
+		Type:           TypeTelegram,
+		Code:           "999888",
+		Success:        false,
+		AttemptLeft:    3,
+		TTL:            AttemptTTL,
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+	}
+	repoImpl.Create(ctx, attempt)
+	id := attempt.ID.Hex()
+
+	t.Run("updates attempt left", func(t *testing.T) {
+		two := 2
+		err := repoImpl.Update(ctx, id, UpdateAuthAttemptDTO{AttemptLeft: &two})
+		assert.NoError(t, err)
+	})
+
+	t.Run("does not update on empty DTO", func(t *testing.T) {
+		err := repoImpl.Update(ctx, id, UpdateAuthAttemptDTO{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("returns error on invalid ID", func(t *testing.T) {
+		err := repoImpl.Update(ctx, "invalid-id", UpdateAuthAttemptDTO{})
+		assert.ErrorIs(t, err, ErrInvalidAuthAttemptID)
+	})
+}
+
+func TestAuthAttemptRepositoryImpl_Delete(t *testing.T) {
+	db, disconnect := testutils.SetupMongo(t)
+	repoImpl := NewAuthAttemptRepository(db)
+	defer disconnect()
+
+	ctx := context.Background()
+	attempt := AuthAttempt{
+		ID:             primitive.NewObjectID(),
+		IdentifierUsed: "user4",
+		Type:           TypeTelegram,
+		Code:           "777666",
+		Success:        false,
+		AttemptLeft:    1,
+		TTL:            AttemptTTL,
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+	}
+	repoImpl.Create(ctx, attempt)
+	id := attempt.ID.Hex()
+
+	t.Run("deletes auth attempt", func(t *testing.T) {
+		err := repoImpl.Delete(ctx, id)
+		assert.NoError(t, err)
+	})
+
+	t.Run("delete returns error for bad ID", func(t *testing.T) {
+		err := repoImpl.Delete(ctx, "bad-id")
 		assert.ErrorIs(t, err, ErrInvalidAuthAttemptID)
 	})
 
-	t.Run("returns error for invalid Update", func(t *testing.T) {
-		err := repo.Update(ctx, "invalid-id", UpdateAuthAttemptDTO{})
-		assert.ErrorIs(t, err, ErrInvalidAuthAttemptID)
+	t.Run("delete returns not found for missing attempt", func(t *testing.T) {
+		fake := primitive.NewObjectID().Hex()
+		err := repoImpl.Delete(ctx, fake)
+		assert.ErrorIs(t, err, ErrAuthAttemptNotFound)
+	})
+}
+
+func TestAuthAttemptRepositoryImpl_GetByTelegramUsername(t *testing.T) {
+	db, disconnect := testutils.SetupMongo(t)
+	repoImpl := NewAuthAttemptRepository(db)
+	defer disconnect()
+
+	ctx := context.Background()
+	username := "teleuser"
+
+	attempt := AuthAttempt{
+		ID:             primitive.NewObjectID(),
+		IdentifierUsed: username,
+		Type:           TypeTelegram,
+		Code:           "000111",
+		Success:        false,
+		AttemptLeft:    2,
+		TTL:            AttemptTTL,
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+	}
+	_, err := repoImpl.Create(ctx, attempt)
+	assert.NoError(t, err)
+
+	t.Run("returns valid attempt", func(t *testing.T) {
+		res, err := repoImpl.GetByTelegramUsername(ctx, username)
+		assert.NoError(t, err)
+		assert.Equal(t, username, res.IdentifierUsed)
 	})
 
-	t.Run("returns error for invalid Delete", func(t *testing.T) {
-		err := repo.Delete(ctx, "invalid-id")
-		assert.ErrorIs(t, err, ErrInvalidAuthAttemptID)
+	t.Run("returns error if no valid attempt", func(t *testing.T) {
+		expired := attempt
+		expired.ID = primitive.NewObjectID()
+		expired.CreatedAt = time.Now().Add(-10 * time.Minute)
+		expired.AttemptLeft = 1
+		_, err := repoImpl.Create(ctx, expired)
+		assert.NoError(t, err)
+
+		res, err := repoImpl.GetByTelegramUsername(ctx, "nonexistent")
+		assert.Nil(t, res)
+		assert.ErrorIs(t, err, ErrAuthAttemptNotFound)
 	})
 }

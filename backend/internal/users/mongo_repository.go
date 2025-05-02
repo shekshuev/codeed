@@ -29,14 +29,14 @@ func NewUserRepository(db *mongo.Database) *UserRepositoryImpl {
 // It first checks if a user with the same Telegram ID already exists.
 // Returns ErrUserExists if duplicate, or the created user as ReadUserDTO.
 func (r *UserRepositoryImpl) Create(ctx context.Context, dto CreateUserDTO) (*ReadUserDTO, error) {
-	r.log.Sugar.Infof("Attempting to create user: telegram_id=%d", dto.TelegramID)
-	count, err := r.collection.CountDocuments(ctx, bson.M{"telegram_id": dto.TelegramID})
+	r.log.Sugar.Infof("Attempting to create user: telegram_username=%d", dto.TelegramUsername)
+	count, err := r.collection.CountDocuments(ctx, bson.M{"telegram_username": dto.TelegramUsername})
 	if err != nil {
 		r.log.Sugar.Errorw("Failed to check for existing user", "error", err)
 		return nil, err
 	}
 	if count > 0 {
-		r.log.Sugar.Warnf("User already exists: telegram_id=%d", dto.TelegramID)
+		r.log.Sugar.Warnf("User already exists: telegram_username=%d", dto.TelegramUsername)
 		return nil, ErrUserExists
 	}
 
@@ -76,18 +76,18 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*ReadUserD
 	return u.ToReadUserDTO(), nil
 }
 
-// GetByTelegramID finds a user by their Telegram ID (unique external identity).
-// Returns ErrUserNotFound if no user exists with the given Telegram ID.
-func (r *UserRepositoryImpl) GetByTelegramID(ctx context.Context, telegramID int64) (*ReadUserDTO, error) {
-	r.log.Sugar.Infof("Fetching user by telegram_id: %d", telegramID)
+// GetByTelegramID finds a user by their Telegram Username (unique external identity).
+// Returns ErrUserNotFound if no user exists with the given Telegram username.
+func (r *UserRepositoryImpl) GetByTelegramUsername(ctx context.Context, telegramUsername string) (*ReadUserDTO, error) {
+	r.log.Sugar.Infof("Fetching user by telegram_username: %d", telegramUsername)
 
 	var u User
-	err := r.collection.FindOne(ctx, bson.M{"telegram_id": telegramID}).Decode(&u)
+	err := r.collection.FindOne(ctx, bson.M{"telegram_username": telegramUsername}).Decode(&u)
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		r.log.Sugar.Warnf("User not found by telegram_id: %d", telegramID)
+		r.log.Sugar.Warnf("User not found by telegram_username: %d", telegramUsername)
 		return nil, ErrUserNotFound
 	} else if err != nil {
-		r.log.Sugar.Errorw("Failed to fetch user by telegram_id", "error", err)
+		r.log.Sugar.Errorw("Failed to fetch user by telegram_username", "error", err)
 		return nil, err
 	}
 

@@ -27,9 +27,9 @@ type UserRepository interface {
 	// Returns ErrUserNotFound if the user does not exist or ID is invalid.
 	GetByID(ctx context.Context, id string) (*ReadUserDTO, error)
 
-	// GetByTelegramID finds a user by their Telegram user ID.
-	// Returns ErrUserNotFound if no user with that Telegram ID exists.
-	GetByTelegramID(ctx context.Context, telegramID int64) (*ReadUserDTO, error)
+	// GetByTelegramUsername finds a user by their Telegram username.
+	// Returns ErrUserNotFound if no user with that username exists.
+	GetByTelegramUsername(ctx context.Context, telegramUsername string) (*ReadUserDTO, error)
 
 	// UpdateByID modifies a user's fields based on UpdateUserDTO.
 	// Only non-nil fields in DTO are updated.

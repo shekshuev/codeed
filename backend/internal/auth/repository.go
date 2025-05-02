@@ -8,6 +8,7 @@ import (
 type AuthAttemptRepository interface {
 	Create(ctx context.Context, attempt AuthAttempt) (*AuthAttempt, error)
 	GetByID(ctx context.Context, id string) (*AuthAttempt, error)
+	GetByTelegramUsername(ctx context.Context, username string) (*AuthAttempt, error)
 	Update(ctx context.Context, id string, dto UpdateAuthAttemptDTO) error
 	Delete(ctx context.Context, id string) error
 }

@@ -21,17 +21,17 @@ func TestMongoRepository_Create(t *testing.T) {
 
 	t.Run("successfully creates user", func(t *testing.T) {
 		dto := CreateUserDTO{
-			TelegramID: 1111,
-			Username:   "testuser",
-			FirstName:  "Test",
-			LastName:   "User",
-			Role:       "student",
+			TelegramUsername: "testuser1",
+			Username:         "testuser",
+			FirstName:        "Test",
+			LastName:         "User",
+			Role:             "student",
 		}
 
 		user, err := repo.Create(ctx, dto)
 		assert.NoError(t, err)
 		assert.NotNil(t, user)
-		assert.Equal(t, dto.TelegramID, user.TelegramID)
+		assert.Equal(t, dto.TelegramUsername, user.TelegramUsername)
 		assert.Equal(t, dto.Username, user.Username)
 		assert.Equal(t, dto.FirstName, user.FirstName)
 		assert.Equal(t, dto.LastName, user.LastName)
@@ -40,13 +40,13 @@ func TestMongoRepository_Create(t *testing.T) {
 		assert.NotEmpty(t, user.CreatedAt)
 	})
 
-	t.Run("returns error on duplicate TelegramID", func(t *testing.T) {
+	t.Run("returns error on duplicate TelegramUsername", func(t *testing.T) {
 		dto := CreateUserDTO{
-			TelegramID: 1111,
-			Username:   "otheruser",
-			FirstName:  "Dup",
-			LastName:   "User",
-			Role:       "student",
+			TelegramUsername: "testuser1",
+			Username:         "otheruser",
+			FirstName:        "Dup",
+			LastName:         "User",
+			Role:             "student",
 		}
 
 		user, err := repo.Create(ctx, dto)
@@ -65,11 +65,11 @@ func TestMongoRepository_GetByID(t *testing.T) {
 
 	t.Run("returns user by ID", func(t *testing.T) {
 		dto := CreateUserDTO{
-			TelegramID: 2222,
-			Username:   "getbyid",
-			FirstName:  "Get",
-			LastName:   "Test",
-			Role:       "admin",
+			TelegramUsername: "testuser3",
+			Username:         "getbyid",
+			FirstName:        "Get",
+			LastName:         "Test",
+			Role:             "admin",
 		}
 
 		created, err := repo.Create(ctx, dto)
@@ -96,7 +96,7 @@ func TestMongoRepository_GetByID(t *testing.T) {
 	})
 }
 
-func TestMongoRepository_GetByTelegramID(t *testing.T) {
+func TestMongoRepository_GetByTelegramUsername(t *testing.T) {
 	db, disconnect := testutils.SetupMongo(t)
 	repo := NewUserRepository(db)
 	defer disconnect()
@@ -106,17 +106,17 @@ func TestMongoRepository_GetByTelegramID(t *testing.T) {
 
 	t.Run("returns user by Telegram ID", func(t *testing.T) {
 		dto := CreateUserDTO{
-			TelegramID: 3333,
-			Username:   "bytelegram",
-			FirstName:  "Tele",
-			LastName:   "Gram",
-			Role:       "student",
+			TelegramUsername: "testuser4",
+			Username:         "bytelegram",
+			FirstName:        "Tele",
+			LastName:         "Gram",
+			Role:             "student",
 		}
 
 		created, err := repo.Create(ctx, dto)
 		assert.NoError(t, err)
 
-		found, err := repo.GetByTelegramID(ctx, dto.TelegramID)
+		found, err := repo.GetByTelegramUsername(ctx, dto.TelegramUsername)
 		assert.NoError(t, err)
 		assert.NotNil(t, found)
 		assert.Equal(t, created.ID, found.ID)
@@ -124,7 +124,7 @@ func TestMongoRepository_GetByTelegramID(t *testing.T) {
 	})
 
 	t.Run("returns error if user with Telegram ID not found", func(t *testing.T) {
-		user, err := repo.GetByTelegramID(ctx, 999999999)
+		user, err := repo.GetByTelegramUsername(ctx, "testuser99999")
 		assert.Nil(t, user)
 		assert.ErrorIs(t, err, ErrUserNotFound)
 	})
@@ -140,11 +140,11 @@ func TestMongoRepository_UpdateByID(t *testing.T) {
 
 	t.Run("updates existing user fields", func(t *testing.T) {
 		created, err := repo.Create(ctx, CreateUserDTO{
-			TelegramID: 4444,
-			Username:   "beforeupdate",
-			FirstName:  "Old",
-			LastName:   "Name",
-			Role:       "student",
+			TelegramUsername: "testuser5",
+			Username:         "beforeupdate",
+			FirstName:        "Old",
+			LastName:         "Name",
+			Role:             "student",
 		})
 		assert.NoError(t, err)
 
@@ -167,11 +167,11 @@ func TestMongoRepository_UpdateByID(t *testing.T) {
 
 	t.Run("does nothing if DTO is empty", func(t *testing.T) {
 		created, err := repo.Create(ctx, CreateUserDTO{
-			TelegramID: 5555,
-			Username:   "unchanged",
-			FirstName:  "Still",
-			LastName:   "Here",
-			Role:       "student",
+			TelegramUsername: "testuser6",
+			Username:         "unchanged",
+			FirstName:        "Still",
+			LastName:         "Here",
+			Role:             "student",
 		})
 		assert.NoError(t, err)
 
@@ -211,11 +211,11 @@ func TestMongoRepository_DeleteByID(t *testing.T) {
 
 	t.Run("successfully soft deletes user", func(t *testing.T) {
 		created, err := repo.Create(ctx, CreateUserDTO{
-			TelegramID: 6666,
-			Username:   "tobedeleted",
-			FirstName:  "Gone",
-			LastName:   "Soon",
-			Role:       "student",
+			TelegramUsername: "testuser7",
+			Username:         "tobedeleted",
+			FirstName:        "Gone",
+			LastName:         "Soon",
+			Role:             "student",
 		})
 		assert.NoError(t, err)
 

@@ -19,9 +19,9 @@ type UserService interface {
 	// Returns ErrUserNotFound or ErrInvalidIDFormat if not found or invalid.
 	GetUserByID(ctx context.Context, id string) (*ReadUserDTO, error)
 
-	// GetUserByTelegramID finds a user using their Telegram ID.
-	// Returns ErrUserNotFound if no user exists with the given Telegram ID.
-	GetUserByTelegramID(ctx context.Context, telegramID int64) (*ReadUserDTO, error)
+	// GetUserByTelegramUsername finds a user using their Telegram Username.
+	// Returns ErrUserNotFound if no user exists with the given Telegram Username.
+	GetUserByTelegramUsername(ctx context.Context, telegramUsername string) (*ReadUserDTO, error)
 
 	// UpdateUser modifies a user’s data by ID using the provided update DTO.
 	// Returns ErrUserNotFound or ErrInvalidIDFormat if applicable.
@@ -44,10 +44,10 @@ func NewService(repo UserRepository) UserService {
 }
 
 func (s *UserServiceImpl) CreateUser(ctx context.Context, dto CreateUserDTO) (*ReadUserDTO, error) {
-	s.log.Sugar.Infof("Creating user: telegram_id=%d username=%s", dto.TelegramID, dto.Username)
+	s.log.Sugar.Infof("Creating user: telegram_id=%d username=%s", dto.TelegramUsername, dto.Username)
 	user, err := s.repo.Create(ctx, dto)
 	if err != nil {
-		s.log.Sugar.Warnw("Failed to create user", "telegram_id", dto.TelegramID, "error", err)
+		s.log.Sugar.Warnw("Failed to create user", "telegram_id", dto.TelegramUsername, "error", err)
 		return nil, err
 	}
 	s.log.Sugar.Infof("User created: id=%s", user.ID)
@@ -64,11 +64,11 @@ func (s *UserServiceImpl) GetUserByID(ctx context.Context, id string) (*ReadUser
 	return user, nil
 }
 
-func (s *UserServiceImpl) GetUserByTelegramID(ctx context.Context, telegramID int64) (*ReadUserDTO, error) {
-	s.log.Sugar.Infof("Fetching user by Telegram ID: %d", telegramID)
-	user, err := s.repo.GetByTelegramID(ctx, telegramID)
+func (s *UserServiceImpl) GetUserByTelegramUsername(ctx context.Context, telegramUsername string) (*ReadUserDTO, error) {
+	s.log.Sugar.Infof("Fetching user by Telegram username: %s", telegramUsername)
+	user, err := s.repo.GetByTelegramUsername(ctx, telegramUsername)
 	if err != nil {
-		s.log.Sugar.Warnw("Failed to fetch user by Telegram ID", "telegram_id", telegramID, "error", err)
+		s.log.Sugar.Warnw("Failed to fetch user by Telegram Username", "telegram_username", telegramUsername, "error", err)
 		return nil, err
 	}
 	return user, nil

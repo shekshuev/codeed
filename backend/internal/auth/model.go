@@ -83,7 +83,7 @@ type ReadAuthAttemptDTO struct {
 
 // UpdateAuthAttemptDTO is used to update an AuthAttempt in the database.
 type UpdateAuthAttemptDTO struct {
-	Success     *bool
+	Success     bool
 	AttemptLeft *int
 }
 

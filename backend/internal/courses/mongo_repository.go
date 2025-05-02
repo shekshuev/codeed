@@ -18,7 +18,7 @@ type CourseRepositoryImpl struct {
 }
 
 // NewMongoRepository creates a new instance of MongoRepository that operates on the "courses" collection.
-func NewMongoRepository(db *mongo.Database) *CourseRepositoryImpl {
+func NewCourseRepository(db *mongo.Database) *CourseRepositoryImpl {
 	return &CourseRepositoryImpl{
 		collection: db.Collection("courses"),
 		log:        logger.NewLogger(),

@@ -5,37 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shekshuev/codeed/backend/internal/testutils"
 	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func setupMongo(t *testing.T) (*CourseRepositoryImpl, func()) {
-	ctx := context.Background()
-
-	container, err := mongodb.Run(ctx, "mongo:6")
-	assert.NoError(t, err)
-
-	t.Cleanup(func() {
-		_ = container.Terminate(ctx)
-	})
-
-	uri, err := container.ConnectionString(ctx)
-	assert.NoError(t, err)
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-	assert.NoError(t, err)
-
-	db := client.Database("testdb")
-	return NewMongoRepository(db), func() {
-		_ = client.Disconnect(ctx)
-	}
-}
-
 func TestMongoRepository_Create(t *testing.T) {
-	repo, disconnect := setupMongo(t)
+	db, disconnect := testutils.SetupMongo(t)
+	repo := NewCourseRepository(db)
 	defer disconnect()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -78,7 +55,8 @@ func TestMongoRepository_Create(t *testing.T) {
 }
 
 func TestMongoRepository_GetByID(t *testing.T) {
-	repo, disconnect := setupMongo(t)
+	db, disconnect := testutils.SetupMongo(t)
+	repo := NewCourseRepository(db)
 	defer disconnect()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -126,7 +104,8 @@ func TestMongoRepository_GetByID(t *testing.T) {
 }
 
 func TestMongoRepository_UpdateByID(t *testing.T) {
-	repo, disconnect := setupMongo(t)
+	db, disconnect := testutils.SetupMongo(t)
+	repo := NewCourseRepository(db)
 	defer disconnect()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -179,7 +158,8 @@ func TestMongoRepository_UpdateByID(t *testing.T) {
 }
 
 func TestMongoRepository_DeleteByID(t *testing.T) {
-	repo, disconnect := setupMongo(t)
+	db, disconnect := testutils.SetupMongo(t)
+	repo := NewCourseRepository(db)
 	defer disconnect()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -216,7 +196,8 @@ func TestMongoRepository_DeleteByID(t *testing.T) {
 }
 
 func TestMongoRepository_Find(t *testing.T) {
-	repo, disconnect := setupMongo(t)
+	db, disconnect := testutils.SetupMongo(t)
+	repo := NewCourseRepository(db)
 	defer disconnect()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

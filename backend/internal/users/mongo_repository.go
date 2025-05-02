@@ -18,7 +18,7 @@ type UserRepositoryImpl struct {
 }
 
 // NewMongoRepository creates a new MongoRepository bound to the "users" collection.
-func NewMongoRepository(db *mongo.Database) *UserRepositoryImpl {
+func NewUserRepository(db *mongo.Database) *UserRepositoryImpl {
 	return &UserRepositoryImpl{
 		collection: db.Collection("users"),
 		log:        logger.NewLogger(),

@@ -5,39 +5,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/shekshuev/codeed/backend/internal/testutils"
 	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go/modules/mongodb"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func setupMongo(t *testing.T) (*AuthAttemptRepositoryImpl, func()) {
-	ctx := context.Background()
-
-	container, err := mongodb.Run(ctx, "mongo:6")
-	assert.NoError(t, err)
-
-	t.Cleanup(func() {
-		_ = container.Terminate(ctx)
-	})
-
-	uri, err := container.ConnectionString(ctx)
-	assert.NoError(t, err)
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
-	assert.NoError(t, err)
-
-	db := client.Database("testdb")
-
-	return NewAuthAttemptRepository(db), func() {
-		_ = client.Disconnect(ctx)
-	}
-}
-
 func TestAuthAttemptRepository_CRUD(t *testing.T) {
-	repo, cleanup := setupMongo(t)
-	defer cleanup()
+	db, disconnect := testutils.SetupMongo(t)
+	repo := NewAuthAttemptRepository(db)
+	defer disconnect()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -91,8 +67,9 @@ func TestAuthAttemptRepository_CRUD(t *testing.T) {
 }
 
 func TestAuthAttemptRepository_InvalidID(t *testing.T) {
-	repo, cleanup := setupMongo(t)
-	defer cleanup()
+	db, disconnect := testutils.SetupMongo(t)
+	repo := NewAuthAttemptRepository(db)
+	defer disconnect()
 
 	ctx := context.Background()
 
